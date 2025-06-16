@@ -2,18 +2,23 @@ import { Link } from 'react-router-dom';
 import '../Signup/auth.css';
 import { useState } from "react";
 import { authRepository } from '../../modules/auth/auth.repository';
+import { useCurrentUserStore } from "../../modules/auth/current-user.state";
+import { Navigate } from "react-router-dom";
 
 
 function Signin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { currentUser, setCurrentUser } = useCurrentUserStore()
 
   const signin = async () => {
     if(email == '' || password == '') return;
     const {user, token } = await authRepository.signin(email, password);
+    setCurrentUser(user)
     console.log(user, token);
-    
   };
+
+      if(currentUser != null) return <Navigate to="/" />
 
   return (
     <div className="signup-container">
@@ -39,8 +44,8 @@ function Signin() {
               onChange={(e) => setPassword(e.target.value)}
               required />
           </div>
-          <button 
-              type="submit" 
+          <button
+              type="submit"
               className="continue-button" 
               disabled={email == '' || password == ''} 
               onClick={signin}>

@@ -2,20 +2,29 @@ import { Link } from 'react-router-dom';
 import './auth.css';
 import { useState } from "react";
 import { authRepository } from '../../modules/auth/auth.repository';
+import { useCurrentUserStore } from "../../modules/auth/current-user.state";
+import { Navigate } from "react-router-dom";
+
 
 function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { currentUser, setCurrentUser } = useCurrentUserStore()
+  
 
   const signup = async()=> {
     if(name == '' || email == '' || password == '') return;
     const { user, token } = await authRepository.signup(name, email, password)
+    setCurrentUser(user)
     console.log(user, token);
   };
 
+        if(currentUser != null) return <Navigate to="/" />
+
+
   return (
-    
+
     <div className="signup-container">
       <div className="signup-form-container">
         <h1 className="signup-title">Sign up to continue</h1>
