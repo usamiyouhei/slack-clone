@@ -16,8 +16,9 @@ function Signup() {
   const signup = async()=> {
     if(name == '' || email == '' || password == '') return;
     const { user, token } = await authRepository.signup(name, email, password)
+    localStorage.setItem('token', token)
     setCurrentUser(user)
-    console.log(user, token);
+    console.log(user);
   };
 
         if(currentUser != null) return <Navigate to="/" />
