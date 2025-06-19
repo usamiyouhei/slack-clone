@@ -3,8 +3,14 @@ import { workspaceRepository } from "../../../modules/workspaces/workspace.repos
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 import ProfileModal from './ProfileModal';
 import { useNavigate } from "react-router-dom";
-
-function WorkspaceSelector() {
+import type { Workspace } from "../../../modules/workspaces/workspace.entity";
+interface Props {
+  workspaces: Workspace[];
+  setWorkspaces: (workspaces: Workspace[]) => void;
+  selectedWorkspaceId: string;
+}
+function WorkspaceSelector(props: Props) {
+  const { workspaces, setWorkspaces,selectedWorkspaceId } = props;
   const {showCreateWorkspaceModal, setShowCreateWorkspaceModal } = 
   useUiStore()
   const navigate = useNavigate()
@@ -13,6 +19,7 @@ function WorkspaceSelector() {
    try {
     const newWorkspace = await workspaceRepository.create(name);
     setShowCreateWorkspaceModal(false)
+    setWorkspaces([...workspaces, newWorkspace]);
     navigate(`/${newWorkspace.id}/${newWorkspace.channels[0].id}`)
    } catch (error) {
     console.error('ワークスペースの作成に失敗しました', error);
@@ -22,12 +29,17 @@ function WorkspaceSelector() {
   return (
     <div className="workspace-selector">
       <div className="workspaces">
-        <div key={1} className={'workspace-icon'}>
-          A
+
+        {workspaces.map((workspace) => (
+        <div key={workspace.id} className={`workspace-icon ${selectedWorkspaceId == workspace.id? 'active' : ''}`}
+        onClick={() => 
+          navigate(`/${workspace.id}/${workspace.channels[0].id}`)
+        }
+        >
+           {workspace.name.charAt(0)}
         </div>
-        <div key={2} className={'workspace-icon'}>
-          B
-        </div>
+        ))}
+        
         <div className="workspace-icon add" onClick={() => setShowCreateWorkspaceModal(true)}>+</div>
       </div>
       <div className="user-profile">
