@@ -1,9 +1,9 @@
-import { useUiStore } from "../../../modules/ui/ui.state";
+import { useNavigate } from "react-router-dom";
 import { channelRepository } from '../../../modules/channels/channel.repository';
+import { useUiStore } from "../../../modules/ui/ui.state";
 import type { Workspace } from "../../../modules/workspaces/workspace.entity";
 import CreateChannelModal from './CreateChannelModal';
 import UserSearchModal from './UserSearchModal';
-import { useNavigate } from "react-router-dom";
 import type { Channel } from "../../../modules/channels/channel.entity";
 
 
@@ -16,7 +16,12 @@ interface Props {
 
 function Sidebar(props: Props) {
   const { selectedWorkspace, selectedChannelId, channels, setChannels } = props;
-  const {showCreateChannelModal, setShowCreateChannelModal } = useUiStore()
+  const {
+    showCreateChannelModal, 
+    setShowCreateChannelModal,
+    showUserSearchModal,
+    setShowUserSearchModal,
+  } = useUiStore()
   const navigate = useNavigate()
 
   const createChannel = async (name: string) => {
@@ -66,12 +71,16 @@ function Sidebar(props: Props) {
           </li>
         </ul>
 
-        <div className="section-header channels-header">
+        <div className="section-header channels-header" onClick={() =>setShowUserSearchModal(true)}>
           <span className="channel-icon add">+</span> Invite Pepole
         </div>
       </div>
-      {showCreateChannelModal && <CreateChannelModal onSubmit={createChannel}/>}
-      {/* <UserSearchModal /> */}
+      {showCreateChannelModal && (
+        <CreateChannelModal onSubmit={createChannel}/>
+    )}
+      {showUserSearchModal && (
+        <UserSearchModal workspaceId={selectedWorkspace.id}/>
+      )}
     </div>
   );
 }
