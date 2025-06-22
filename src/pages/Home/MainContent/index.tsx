@@ -1,14 +1,47 @@
-function MainContent() {
+import { Channel } from "../../../modules/channels/channel.entity";
+import { useNavigate } from "react-router-dom";
+import { channelRepository } from "../../../modules/channels/channel.repository";
+
+
+interface Props {
+  selectedChannel: Channel;
+  channels: Channel[];
+  setChannels: (channels: Channel[]) => void;
+  selectedWorkspaceId: string;
+}
+
+function MainContent(props: Props) {
+  const { selectedChannel, channels, setChannels, selectedWorkspaceId } = props;
+  const navigate = useNavigate();
+
+  const deleteChannel = async () => {
+    try {
+      const confirmed = window.confirm(
+        'このチャンネルを削除しますか？ この操作は取り消せません。'
+      );
+      if(!confirmed) return;
+      await channelRepository.delete(selectedChannel.id);
+      const updatedChannels = channels.filter(
+        (channel) => channel.id !== selectedChannel.id
+      );
+      setChannels(updatedChannels);
+      navigate(`/${selectedWorkspaceId}/${updatedChannels[0].id}`)
+    } catch (error) {
+      console.error('チャンネルの削除に失敗しました', error);
+      
+    }
+  }
+
   return (
     <div className="main-content">
       <header className="channel-header">
         <div className="channel-info">
-          <h2># {'test'}</h2>
+          <h2># {selectedChannel.name}</h2>
         </div>
         <div className="channel-actions">
           <button
             className="delete-channel-button"
-            onClick={() => {}}
+            onClick={deleteChannel}
             title="チャンネルを削除"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

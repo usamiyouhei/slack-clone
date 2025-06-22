@@ -4,16 +4,20 @@ import CreateWorkspaceModal from './CreateWorkspaceModal';
 import ProfileModal from './ProfileModal';
 import { useNavigate } from "react-router-dom";
 import type { Workspace } from "../../../modules/workspaces/workspace.entity";
+import { useCurrentUserStore } from "../../../modules/auth/current-user.state";
+
 interface Props {
   workspaces: Workspace[];
   setWorkspaces: (workspaces: Workspace[]) => void;
   selectedWorkspaceId: string;
 }
+
 function WorkspaceSelector(props: Props) {
   const { workspaces, setWorkspaces,selectedWorkspaceId } = props;
   const {showCreateWorkspaceModal, setShowCreateWorkspaceModal } = 
   useUiStore()
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { setCurrentUser } = useCurrentUserStore();
 
   const createWorkspace = async (name: string) => {
    try {
@@ -25,7 +29,13 @@ function WorkspaceSelector(props: Props) {
     console.error('ワークスペースの作成に失敗しました', error);
     
    }
-  }
+  };
+
+  const logout = ()=> {
+    localStorage.removeItem('token');
+    setCurrentUser(undefined)
+  };
+
   return (
     <div className="workspace-selector">
       <div className="workspaces">
@@ -52,7 +62,7 @@ function WorkspaceSelector(props: Props) {
             className="message-image"
           />
         </div>
-        <div className="logout-button" title="ログアウト">
+        <div className="logout-button" title="ログアウト" onClick={logout}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
