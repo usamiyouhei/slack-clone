@@ -5,15 +5,19 @@ import MainContent from './MainContent';
 import { useCurrentUserStore } from "../../modules/auth/current-user.state";
 import { Navigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import type { Workspace } from '../../modules/workspaces/workspace.entity';
+import { Workspace } from '../../modules/workspaces/workspace.entity';
 import { workspaceRepository } from "../../modules/workspaces/workspace.repository";
 import { Channel } from "../../modules/channels/channel.entity";
 import { channelRepository } from '../../modules/channels/channel.repository';
+import { Message } from "../../modules/messages/message.entity";
+import { messageRepository } from '../../modules/messages/message.repository';
+import { subscribe, unsubscribe } from '../../lib/api/socket';
 
 function Home() {
   const { currentUser } = useCurrentUserStore();
   const [ workspaces, setWorkspaces ] = useState<Workspace[]>([])
   const [channels, setChannels] = useState<Channel[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const params = useParams();
   const { workspaceId, channelId } = params;
   const selectedWorkspace = workspaces.find((workspace) => workspace.id == workspaceId)
@@ -25,7 +29,15 @@ function Home() {
 
   useEffect(() => {
     fetchChannels()
+    subscribe(workspaceId!, handleNewMessage, handleDeleteMessage);
+    return () => {
+      unsubscribe(workspaceId!)
+    }
   }, [workspaceId])
+  
+  useEffect(() => {
+    fetchMessage();
+  }, [channelId])
   
   
   const fetchWorkspace = async () => {
@@ -37,6 +49,13 @@ function Home() {
     }
   }
 
+  const handleNewMessage = (message: Message) => {
+    setMessages((messages) => [message, ...messages])
+  }
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages((messages) => messages.filter((msg) => msg.id !== messageId))
+  }
+
   const fetchChannels = async ()=> {
     try {
       const channels = await channelRepository.find(workspaceId!);
@@ -45,7 +64,19 @@ function Home() {
       console.error('チャンネルの取得に失敗しました', error);
       
     }
+  };
+
+  const fetchMessage = async() => {
+    try {
+      const messages = await messageRepository.find(workspaceId!, channelId!);
+      setMessages(messages)
+    } catch (error) {
+      console.error('メッセージの取得に失敗しました', error);
+    }
   }
+
+  
+
   if(currentUser == null) return <Navigate to="/signin" />
   return (
     <div className="slack-container">
@@ -66,6 +97,8 @@ function Home() {
         channels={channels}
         setChannels={setChannels}
         selectedWorkspaceId={workspaceId!}
+        messages={messages}
+        setMessages={setMessages}
         />
       </>
       ) : (
